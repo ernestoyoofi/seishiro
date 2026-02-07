@@ -1,0 +1,21 @@
+{
+  "name": "seishiro",
+  "version": "0.1.5-untest",
+  "description": "A simple response context API that eliminates the complexity of routing folder structures and replaces them with a single control center.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:package": "rm -r dist && tsc && cp ./package.json ./dist/package.json && cp ./README.md ./dist/README.md",
+    "bun:build": "bun build ./src/**/*.ts --outdir ./dist",
+    "test": "bun test",
+    "lint": "biome check",
+    "format": "biome format --write"
+  },
+  "license": "AGPL-3.0",
+  "author": "Ernestoyoofi",
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.13",
+    "@types/jest": "^30.0.0"
+  }
+}
