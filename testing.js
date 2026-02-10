@@ -1,4 +1,9 @@
-import { RegistryBuilder, MessageBuilder, PolicyBuilder, Actions } from "./dist";
+import {
+  RegistryBuilder,
+  MessageBuilder,
+  PolicyBuilder,
+  Actions,
+} from "./dist";
 
 // Registry
 const registry = new RegistryBuilder();

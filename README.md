@@ -11,7 +11,8 @@ Seishiro eliminates the complexity of routing folder structures and replaces the
 - [x] Protocol Response
 - [x] Middleware Runner
 - [x] Action Executed
-- [ ] Versioning Header
+- [ ] Versioning Header (Pending...)
+- [ ] Language Switch (Pending...)
 
 ## Installation
 
@@ -24,7 +25,7 @@ Seishiro eliminates the complexity of routing folder structures and replaces the
    yarn add seishiro
    ```
 
-2. Copy the file `./example/api/action.(js/ts)` and then copy some of its structure for the sample. You can manage this system to be much more complex.
+2. Copy the file example and then copy some of its structure for the sample. You can manage this system to be much more complex.
 3. Set up and customize it as you like.
 4. Add auth-cookie to put the default placeholder and client version.
 5. Boom! Done!

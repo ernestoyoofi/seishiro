@@ -10,7 +10,9 @@ import {
 } from "../types/policy.type";
 
 /**
- * @name PolicyBuilder
+ * @class PolicyBuilder
+ * @description Manages application policies including security passkeys, version control,
+ * and protocol-specific action restrictions (Gatekeeping).
  */
 export default class PolicyBuilder {
   private passkey: PolicyPassKey;
@@ -20,6 +22,15 @@ export default class PolicyBuilder {
   private noaction_api: PolicyNoActionAPIAction;
   private noaction_server: PolicyNoActionServerAction;
 
+  /**
+   * @constructor
+   * @param {Object} config - The policy configuration.
+   * @param {string} config.passkey - Secret key used for registry encryption (SHA-256).
+   * @param {string} config.version_now - The current stable version of the application.
+   * @param {string} config.version_min - The minimum required version for clients to operate.
+   * @param {boolean} [config.version_forceupdate=true] - Flag to indicate if clients below version_min must update.
+   * @throws {Error} If passkey, version_now, or version_min is missing.
+   */
   constructor({
     passkey,
     version_now,
@@ -44,6 +55,13 @@ export default class PolicyBuilder {
     this.noaction_server = [];
   }
 
+  /**
+   * @method noaction
+   * @description Restricts specific action types from being accessed via certain protocols.
+   * @param {PolicyNoActionKey} [type=""] - The registry key/action type to restrict.
+   * @param {PolicyNoActionBase} [action=[]] - Array of protocols to block ('server-action' or 'api-action').
+   * @throws {Error} If the protocol type is invalid or the key is not a string.
+   */
   noaction(type: PolicyNoActionKey = "", action: PolicyNoActionBase = []) {
     const onlyAllowed = ["server-action", "api-action"];
     for (let actionRes of action) {
@@ -65,6 +83,14 @@ export default class PolicyBuilder {
     }
   }
 
+  /**
+   * @method compareVersions
+   * @private
+   * @description Compares two semantic version strings to determine their order.
+   * @param {string} v1 - First version string.
+   * @param {string} v2 - Second version string.
+   * @returns {number} 1 if v1 > v2, -1 if v1 < v2, and 0 if they are equal.
+   */
   private compareVersions(v1: string, v2: string): number {
     const clean = (v: string) => v.replace(/-.*$/, "");
 
@@ -80,6 +106,12 @@ export default class PolicyBuilder {
     return 0;
   }
 
+  /**
+   * @method version_info
+   * @description Checks a provided version against the minimum and current version requirements.
+   * @param {string} [version=""] - The version string to validate (usually from the client).
+   * @returns {Object} An object containing upgrade flags and version compatibility status.
+   */
   version_info(version: string = "") {
     const comparisonMin = this.compareVersions(version, this.version_min);
     const comparisonNow = this.compareVersions(version, this.version_now);
@@ -94,6 +126,11 @@ export default class PolicyBuilder {
     };
   }
 
+  /**
+   * @method apply
+   * @description Retrieves the compiled policy configuration.
+   * @returns {Object} All policy settings including restricted actions and versioning data.
+   */
   apply() {
     return {
       passkey: this.passkey,

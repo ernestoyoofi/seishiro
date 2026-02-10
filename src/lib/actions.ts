@@ -3,15 +3,25 @@ import RegistryBuilder from "./registry";
 import MessageBuilder from "./message";
 import PolicyBuilder from "./policy";
 import crypto from "crypto";
+import { Buffer } from "buffer";
 
 /**
- * @name Actions
+ * @class Actions
+ * @description The main orchestrator of the Seishiro API. It handles the execution flow
+ * by coordinating between Registry, Message, and Policy builders across different protocols.
  */
 export default class Actions {
   private registry: RegistryBuilder;
   private message: MessageBuilder;
   private policy: PolicyBuilder;
 
+  /**
+   * @constructor
+   * @param {Object} params - Configuration instances.
+   * @param {RegistryBuilder} params.registry - Instance to manage route/controller mapping.
+   * @param {MessageBuilder} params.message - Instance to handle localized error/response messages.
+   * @param {PolicyBuilder} params.policy - Instance to manage security and versioning rules.
+   */
   constructor({
     registry,
     message,
@@ -26,6 +36,12 @@ export default class Actions {
     this.policy = policy;
   }
 
+  /**
+   * @method BookRegistry
+   * @description Generates an encrypted list of available API registries and application versions.
+   * This is used to securely expose allowed actions to the client side.
+   * @returns {Object} An object containing encryption metadata (iv, type_base) and the encrypted 'data' string.
+   */
   BookRegistry() {
     // Default Configuration
     const algorithm = "aes-256-ctr";
@@ -63,6 +79,14 @@ export default class Actions {
     };
   }
 
+  /**
+   * @method ResponseBuilder
+   * @private
+   * @description Standardizes the response structure for all action types, handling headers, cookies, and errors.
+   * @param {any} dataRes - The raw result or error object from the controller/middleware.
+   * @param {RegistryParams["system"]} system - The system context (headers, cookies, ip, etc.) from the request.
+   * @returns {Object} A unified response object containing headers, cookies, status code, and the final data/error payload.
+   */
   private ResponseBuilder(dataRes: any = {}, system: RegistryParams["system"]) {
     const responseStatus = dataRes.error
       ? dataRes.status || 400
@@ -125,6 +149,12 @@ export default class Actions {
     };
   }
 
+  /**
+   * @method SystemAction
+   * @description The core execution engine that processes controllers and middlewares.
+   * @param {RegistryParams} params - The request payload containing system info, type, data, and optional middleware state.
+   * @returns {Promise<Object>} A promise that resolves to a standardized response object via ResponseBuilder.
+   */
   async SystemAction({ system, middleware = {}, type, data }: RegistryParams) {
     try {
       const showregistry = this.registry;
@@ -175,6 +205,13 @@ export default class Actions {
     }
   }
 
+  /**
+   * @method ServerAction
+   * @description Entry point for Server-side actions (e.g., Next.js Server Actions).
+   * It checks against server-specific policies before executing.
+   * @param {RegistryParams} params - The request payload.
+   * @returns {Promise<Object>} The standardized response or a 404 error if the action is restricted by policy.
+   */
   async ServerAction({ system, middleware, type, data }: RegistryParams) {
     if (this.policy.apply().noaction_server.includes(type || "")) {
       return this.ResponseBuilder(
@@ -188,6 +225,13 @@ export default class Actions {
     return this.SystemAction({ system, middleware, type, data });
   }
 
+  /**
+   * @method APIAction
+   * @description Entry point for REST API requests.
+   * It checks against API-specific policies to prevent unauthorized access to sensitive endpoints.
+   * @param {RegistryParams} params - The request payload.
+   * @returns {Promise<Object>} The standardized response or a 404 error if the action is restricted by policy.
+   */
   async APIAction({ system, middleware, type, data }: RegistryParams) {
     if (this.policy.apply().noaction_api.includes(type || "")) {
       return this.ResponseBuilder(

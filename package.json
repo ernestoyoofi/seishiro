@@ -1,12 +1,22 @@
 {
   "name": "seishiro",
-  "version": "0.1.5-untest",
+  "version": "0.1.8-dev",
   "description": "A simple response context API that eliminates the complexity of routing folder structures and replaces them with a single control center.",
   "type": "module",
-  "main": "index.js",
+  "main": "./cjs/index.js",
+  "module": "./esm/index.js",
+  "types": "./esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./cjs/index.js",
+      "types": "./esm/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc",
-    "build:package": "rm -r dist && tsc && cp ./package.json ./dist/package.json && cp ./README.md ./dist/README.md",
+    "build:package": "rm -rf dist && bun format && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json && bun run postbuild",
+    "postbuild": "cp package.json README.md LICENSE dist/",
     "bun:build": "bun build ./src/**/*.ts --outdir ./dist",
     "test": "bun test",
     "lint": "biome check",
@@ -16,6 +26,7 @@
   "author": "Ernestoyoofi",
   "devDependencies": {
     "@biomejs/biome": "^2.3.13",
-    "@types/jest": "^30.0.0"
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.2.2"
   }
 }

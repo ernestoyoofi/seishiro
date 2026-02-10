@@ -8,16 +8,23 @@ import type {
   MessageErrorContextOpt,
   MessageErrorContextSlug,
 } from "../types/message.type";
-import formatKey from "../helper/format-key";
-import { DefaultLanguage } from "../var/message";
+import formatKey from "../utils/format-key";
+import { DefaultLanguage } from "../constants/message";
 
 /**
- * @name MessageBuilder
+ * @class MessageBuilder
+ * @description Handles multi-language response messages, error formatting, and dynamic template replacement.
+ * It allows the application to return consistent, localized messages across different platforms.
  */
 export default class MessageBuilder {
   private message_build_lang: MessageLang = "";
   private message_logic: MessageLogicLang = {};
 
+  /**
+   * @constructor
+   * @param {MessageLang} [language="en"] - The default language code (e.g., 'en', 'id').
+   * It will be sanitized to a 2-character lowercase string.
+   */
   constructor(language: MessageLang = "en") {
     this.message_build_lang = String(language || "en")
       .toLowerCase()
@@ -27,9 +34,11 @@ export default class MessageBuilder {
   }
 
   /**
-   * @name use
-   * @param string string
-   * @param value string
+   * @method set
+   * @description Registers a specific message template for the current active language.
+   * @param {MessageKey} key - The unique identifier for the message.
+   * @param {MessageValue} value - The message string (supports {{variable}} placeholders).
+   * @throws {Error} If key or value is not a string.
    */
   set(key: MessageKey, value: MessageValue): void {
     const keyStr = formatKey(key);
@@ -49,8 +58,12 @@ export default class MessageBuilder {
   }
 
   /**
-   * @name get
-   * @param key string
+   * @method get
+   * @description Retrieves a raw message template based on the key and language.
+   * Falls back to the default language if the requested language is not found.
+   * @param {MessageKey} [key=""] - The message identifier to look up.
+   * @param {MessageLang} [lang=this.message_build_lang] - Optional language override.
+   * @returns {MessageValue} The raw message string or a fallback indicator if not found.
    */
   get(
     key: MessageKey = "",
@@ -82,6 +95,14 @@ export default class MessageBuilder {
     return String(this.message_logic[langSupport][keyStr] || "").trim();
   }
 
+  /**
+   * @method errorMessage
+   * @description Processes a template by replacing {{key}} placeholders with actual values.
+   * @param {MessageErrorContextSlug} [errorSlug=""] - The message key/slug.
+   * @param {MessageErrorContextOpt} [errorOpt={}] - Object containing key-value pairs for replacement.
+   * @param {MessageLang} [lang=this.message_build_lang] - The language to use.
+   * @returns {string} The fully formatted message string.
+   */
   errorMessage(
     errorSlug: MessageErrorContextSlug = "",
     errorOpt: MessageErrorContextOpt = {},
@@ -89,7 +110,8 @@ export default class MessageBuilder {
   ): string {
     let messageContext: string = this.get(errorSlug, lang);
 
-    Object.entries(errorOpt || {}).forEach(([keys, values]) => {
+    Object.keys(errorOpt || {}).forEach((keys: string) => {
+      const values = (errorOpt as Record<string, string>)[keys] || "";
       const pattern = new RegExp(`{{${keys}}}`, "g");
       messageContext = messageContext.replace(pattern, values);
     });
@@ -98,9 +120,12 @@ export default class MessageBuilder {
   }
 
   /**
-   * @name error
-   * @param errorStr string
-   * @param errorOpts object[]
+   * @method error
+   * @description Parses a complex error string (protocol:slug|slug) and returns a structured error object.
+   * @param {MessageErrorContext} [errorStr=""] - The raw error string (e.g., "auth:user-not-found").
+   * @param {MessageErrorContextOpt[]} [errorOpts=[]] - Array of option objects for multiple slugs.
+   * @param {MessageLang} [lang=this.message_build_lang] - The target language.
+   * @returns {Object} Structured error containing protocol, context array, params, and the final joined message.
    */
   error(
     errorStr: MessageErrorContext = "",
@@ -126,29 +151,41 @@ export default class MessageBuilder {
   }
 
   /**
-   * @name apply
+   * @method apply
+   * @description Returns the entire compiled message logic object.
+   * @returns {MessageLogicLang} The internal storage of languages and their messages.
    */
   apply(): MessageLogicLang {
     return this.message_logic;
   }
 
   /**
-   * @name use
-   * @param input MessageBuilder | MessageLogic
+   * @method use
+   * @description Merges messages from another MessageBuilder instance or a plain object into the current one.
+   * @param {MessageBuilder | MessageLogic} input - The source of new messages.
+   * @throws {Error} If the input type is invalid.
    */
   use(input: MessageBuilder | MessageLogic): void {
     if (input instanceof MessageBuilder) {
       const otherLogic = input.apply();
-      Object.entries(otherLogic).forEach(([lang, messages]) => {
-        if (!this.message_logic[lang]) {
-          this.message_logic[lang] = {};
+      for (const lang in otherLogic) {
+        if (Object.prototype.hasOwnProperty.call(otherLogic, lang)) {
+          const messages = otherLogic[lang];
+          if (!this.message_logic[lang]) {
+            this.message_logic[lang] = {};
+          }
+          Object.assign(this.message_logic[lang], messages);
         }
-        Object.assign(this.message_logic[lang], messages);
-      });
+      }
     } else if (typeof input === "object" && input !== null) {
-      Object.entries(input).forEach(([key, value]) => {
-        this.set(key, value);
-      });
+      for (const key in input) {
+        if (Object.prototype.hasOwnProperty.call(input, key)) {
+          this.set(
+            key as MessageKey,
+            (input as MessageLogic)[key] as MessageValue,
+          );
+        }
+      }
     } else {
       throw new Error(
         'The "use" input must be a MessageBuilder or mapping object!',

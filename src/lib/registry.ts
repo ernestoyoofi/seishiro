@@ -4,23 +4,32 @@ import type {
   RegistryLogic,
   RegistryMiddleware,
 } from "../types/registry.type";
-import formatKey from "../helper/format-key";
+import formatKey from "../utils/format-key";
 
 /**
- * @name RegistryBuilder
+ * @class RegistryBuilder
+ * @description Centralizes the mapping of unique action keys to their respective controllers
+ * and optional middlewares. It acts as the routing table for the Seishiro API system.
  */
 export default class RegistryBuilder {
   private registry_logic: RegistryLogic = {};
 
+  /**
+   * @constructor
+   * @description Initializes an empty registry storage.
+   */
   constructor() {
     this.registry_logic = {};
   }
 
   /**
-   * @name set
-   * @param key RegistryKey
-   * @param function_regis RegistryFunction
-   * @param middleware RegistryMiddleware
+   * @method set
+   * @description Registers a controller and an optional middleware to a specific key.
+   * If a middleware is provided, the registry will store them as an array [middleware, function].
+   * @param {RegistryKey} key - The unique identifier for the action (e.g., 'user:login').
+   * @param {RegistryFunction} function_regis - The main controller function to execute.
+   * @param {RegistryMiddleware} [middleware] - Optional middleware function to execute before the main controller.
+   * @throws {Error} If the controller is not a function or the key is not a string.
    */
   set(
     key: RegistryKey,
@@ -44,8 +53,11 @@ export default class RegistryBuilder {
   }
 
   /**
-   * @name get
-   * @param key string
+   * @method get
+   * @description Retrieves the registered function(s) associated with a specific key.
+   * @param {RegistryKey} key - The key to look up in the registry.
+   * @returns {RegistryFunction | [RegistryMiddleware, RegistryFunction] | undefined}
+   * Returns a single function, an array containing [middleware, controller], or undefined if not found.
    */
   get(
     key: RegistryKey,
@@ -55,15 +67,20 @@ export default class RegistryBuilder {
   }
 
   /**
-   * @name apply
+   * @method apply
+   * @description Returns the raw internal registry logic mapping.
+   * @returns {RegistryLogic} The complete object mapping of keys to functions/middlewares.
    */
   apply(): RegistryLogic {
     return this.registry_logic;
   }
 
   /**
-   * @name use
-   * @param input RegistryBuilder | RegistryLogic
+   * @method use
+   * @description Merges another RegistryBuilder instance or a raw registry object into the current instance.
+   * This is useful for modularizing routes across different files.
+   * @param {RegistryBuilder | RegistryLogic} input - The source registry to be merged.
+   * @throws {Error} If the input is not a RegistryBuilder instance or a valid mapping object.
    */
   use(input: RegistryBuilder | RegistryLogic): void {
     const logic =
