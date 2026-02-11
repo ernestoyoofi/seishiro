@@ -88,9 +88,14 @@ export default class Actions {
    * @returns {Object} A unified response object containing headers, cookies, status code, and the final data/error payload.
    */
   private ResponseBuilder(dataRes: any = {}, system: RegistryParams["system"]) {
-    const responseStatus = dataRes.error
-      ? dataRes.status || 400
-      : dataRes.status || 200;
+    const responseStatus =
+      !dataRes.data ||
+      !!dataRes.error ||
+      !dataRes ||
+      typeof dataRes !== "object" ||
+      !!Array.isArray(dataRes)
+        ? dataRes.status || 400
+        : dataRes.status || 200;
     const setHeaders =
       typeof dataRes.headers === "object" && !Array.isArray(dataRes.headers)
         ? Object.entries(dataRes.headers).map(([key, value]) => {
@@ -113,7 +118,13 @@ export default class Actions {
       : [];
     const redirect = dataRes.redirect || null;
 
-    if (dataRes.error || !dataRes || typeof dataRes !== "object") {
+    if (
+      !dataRes.data ||
+      !!dataRes.error ||
+      !dataRes ||
+      typeof dataRes !== "object" ||
+      !!Array.isArray(dataRes)
+    ) {
       const buildingMessage = this.message.error(
         dataRes.error || "system:no-response-sending",
         [],

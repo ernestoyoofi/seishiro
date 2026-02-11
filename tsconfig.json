@@ -12,6 +12,14 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["./**/*.ts"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
+  "include": ["./src/**/*.ts"],
+  "exclude": [
+    "minify.ts",
+    "testing.js",
+    "test.test.ts",
+    "node_modules",
+    "dist",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
 }

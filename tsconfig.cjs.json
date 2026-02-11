@@ -4,5 +4,15 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "outDir": "./dist/cjs"
-  }
+  },
+  "include": ["./src/**/*.ts"],
+  "exclude": [
+    "minify.ts",
+    "testing.js",
+    "test.test.ts",
+    "node_modules",
+    "dist",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
 }
