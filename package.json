@@ -1,6 +1,6 @@
 {
   "name": "seishiro",
-  "version": "0.1.8-dev",
+  "version": "0.1.85-dev",
   "description": "A simple response context API that eliminates the complexity of routing folder structures and replaces them with a single control center.",
   "type": "module",
   "main": "./cjs/index.js",
