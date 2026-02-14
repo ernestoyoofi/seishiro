@@ -186,13 +186,16 @@ export default class Actions {
           type,
           data,
         });
-        const responsesMiddleware = this.ResponseBuilder(
-          middlewareExecuted,
-          system,
-        );
+        let responseMiddleware = middlewareExecuted;
+        if(!middlewareExecuted?.skipBuilder) {
+          responseMiddleware = this.ResponseBuilder(
+            middlewareExecuted,
+            system,
+          );
+        }
         const executedResponse = await getregistry[1]({
           system,
-          middleware: responsesMiddleware,
+          middleware: responseMiddleware,
           type,
           data,
         });
