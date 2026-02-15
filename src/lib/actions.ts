@@ -127,7 +127,7 @@ export default class Actions {
     ) {
       const buildingMessage = this.message.error(
         dataRes.error || "system:no-response-sending",
-        [],
+        dataRes.params || [],
       );
       return {
         header: setHeaders,
@@ -187,11 +187,8 @@ export default class Actions {
           data,
         });
         let responseMiddleware = middlewareExecuted;
-        if(!middlewareExecuted?.skipBuilder) {
-          responseMiddleware = this.ResponseBuilder(
-            middlewareExecuted,
-            system,
-          );
+        if (!middlewareExecuted?.skipBuilder) {
+          responseMiddleware = this.ResponseBuilder(middlewareExecuted, system);
         }
         const executedResponse = await getregistry[1]({
           system,
