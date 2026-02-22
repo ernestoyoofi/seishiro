@@ -1,7 +1,7 @@
 # Seishiro API
 
 Seishiro eliminates the complexity of routing folder structures and replaces them with a single control center. Just use one endpoint, manage it through the Registry, and control your entire application data flow (Web, Mobile, and SSR) with consistent standards.
-
+<!-- 
 ## Tasks
 
 - [x] Registry Controllers
@@ -11,8 +11,8 @@ Seishiro eliminates the complexity of routing folder structures and replaces the
 - [x] Protocol Response
 - [x] Middleware Runner
 - [x] Action Executed
-- [ ] Versioning Header (Pending...)
-- [ ] Language Switch (Pending...)
+- [x] Versioning Header
+- [x] Language Switch -->
 
 ## Installation
 
@@ -78,7 +78,7 @@ const sysaction = await action.SystemAction({
   system: {
     headers: {...}, // Header KV (Key, Value)
     cookies: {...}, // Cookie KV (Key, Value)
-    ip: "103.214.146.116", // IP Address (IP Client - Example)
+    ip: "127.0.0.1", // IP Address (IP Client - Example)
     location: "JKT, Jakarta, Jakarta Pusat", // Location (Location Client By IP & PeerDB - Example)
   },
   type: "user:login", // Type Action
@@ -94,7 +94,7 @@ const serveraction = await action.ServerAction({
   system: {
     headers: {...}, // Header KV (Key, Value)
     cookies: {...}, // Cookie KV (Key, Value)
-    ip: "103.214.146.116", // IP Address (IP Client - Example)
+    ip: "127.0.0.1", // IP Address (IP Client - Example)
     location: "JKT, Jakarta, Jakarta Pusat", // Location (Location Client By IP & PeerDB - Example)
   },
   type: "user:profile", // Type Action
@@ -109,7 +109,7 @@ const apiaction = action.APIAction({
   system: {
     headers: {...}, // Header KV (Key, Value)
     cookies: {...}, // Cookie KV (Key, Value)
-    ip: "103.214.146.116", // IP Address (IP Client - Example)
+    ip: "127.0.0.1", // IP Address (IP Client - Example)
     location: "JKT, Jakarta, Jakarta Pusat", // Location (Location Client By IP & PeerDB - Example)
   },
   type: "user:profile", // Type Action
