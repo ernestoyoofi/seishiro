@@ -7,7 +7,7 @@ import {
   PolicyNoActionServerAction,
   PolicyNoActionKey,
   PolicyNoActionBase,
-} from "../types/policy.type";
+} from "../types/policy.type.js";
 
 /**
  * @class PolicyBuilder
@@ -21,6 +21,10 @@ export default class PolicyBuilder {
   private version_forceupdate: PolicyVersionForceUpdate;
   private noaction_api: PolicyNoActionAPIAction;
   private noaction_server: PolicyNoActionServerAction;
+  private compiled_policy: any = null;
+  private skip_middleware_context: boolean;
+  private parsed_min: number[];
+  private parsed_now: number[];
 
   /**
    * @constructor
@@ -36,11 +40,13 @@ export default class PolicyBuilder {
     version_now,
     version_min,
     version_forceupdate = true,
+    skip_middleware_context = false,
   }: {
     passkey: string;
     version_now: string;
     version_min: string;
     version_forceupdate?: boolean;
+    skip_middleware_context?: boolean;
   }) {
     if (!passkey || !version_now || !version_min) {
       throw new Error(
@@ -50,9 +56,13 @@ export default class PolicyBuilder {
     this.passkey = passkey;
     this.version_now = version_now;
     this.version_min = version_min;
+    this.parsed_min = this.parseVersion(version_min);
+    this.parsed_now = this.parseVersion(version_now);
     this.version_forceupdate = version_forceupdate;
     this.noaction_api = [];
     this.noaction_server = [];
+    this.skip_middleware_context = skip_middleware_context;
+    this.refresh();
   }
 
   /**
@@ -83,25 +93,16 @@ export default class PolicyBuilder {
     }
   }
 
-  /**
-   * @method compareVersions
-   * @private
-   * @description Compares two semantic version strings to determine their order.
-   * @param {string} v1 - First version string.
-   * @param {string} v2 - Second version string.
-   * @returns {number} 1 if v1 > v2, -1 if v1 < v2, and 0 if they are equal.
-   */
-  private compareVersions(v1: string, v2: string): number {
-    const clean = (v: string) => v.replace(/-.*$/, "");
+  private parseVersion(v: string): number[] {
+    return v.split(".").map(Number);
+  }
 
-    const p1 = clean(v1).split(".").map(Number);
-    const p2 = clean(v2).split(".").map(Number);
-
-    for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
-      const n1 = p1[i] || 0;
-      const n2 = p2[i] || 0;
-      if (n1 > n2) return 1;
-      if (n1 < n2) return -1;
+  private compare(v1: number[], v2: number[]): number {
+    const len = Math.max(v1.length, v2.length);
+    for (let i = 0; i < len; i++) {
+      const n1 = v1[i] || 0;
+      const n2 = v2[i] || 0;
+      if (n1 !== n2) return n1 > n2 ? 1 : -1;
     }
     return 0;
   }
@@ -112,17 +113,28 @@ export default class PolicyBuilder {
    * @param {string} [version=""] - The version string to validate (usually from the client).
    * @returns {Object} An object containing upgrade flags and version compatibility status.
    */
-  version_info(version: string = "") {
-    const comparisonMin = this.compareVersions(version, this.version_min);
-    const comparisonNow = this.compareVersions(version, this.version_now);
-
-    const minimumVersion = comparisonMin >= 0;
-    const matchWithNow = comparisonNow >= 0;
-
+  version_info(clientVersion: string = "") {
+    const vClient = this.parseVersion(clientVersion);
     return {
       info_upgrade: this.version_forceupdate,
-      is_version_min: minimumVersion,
-      is_version_now: matchWithNow,
+      is_version_min: this.compare(vClient, this.parsed_min) >= 0,
+      is_version_now: this.compare(vClient, this.parsed_now) >= 0,
+    };
+  }
+
+  /**
+   * @method refresh
+   * @description Refreshes the compiled policy.
+   */
+  private refresh() {
+    this.compiled_policy = {
+      passkey: this.passkey,
+      version_now: this.version_now,
+      version_min: this.version_min,
+      version_forceupdate: this.version_forceupdate,
+      noaction_api: this.noaction_api,
+      noaction_server: this.noaction_server,
+      skip_middleware_context: this.skip_middleware_context,
     };
   }
 
@@ -132,13 +144,6 @@ export default class PolicyBuilder {
    * @returns {Object} All policy settings including restricted actions and versioning data.
    */
   apply() {
-    return {
-      passkey: this.passkey,
-      version_now: this.version_now,
-      version_min: this.version_min,
-      version_forceupdate: this.version_forceupdate,
-      noaction_api: this.noaction_api,
-      noaction_server: this.noaction_server,
-    };
+    return this.compiled_policy;
   }
 }

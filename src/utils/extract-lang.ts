@@ -9,7 +9,7 @@
  * // returns ["en", "id"]
  */
 
-function extractLanguage(lang: string = "") {
+export default function extractLanguage(lang: string = "") {
   const acceptLang = String(lang || "").trim();
 
   const toArrayLang: string[] = acceptLang
@@ -23,5 +23,5 @@ function extractLanguage(lang: string = "") {
     // Remove duplicates from the array
     .filter((value, index, self) => self.indexOf(value) === index);
 
-  return toArrayLang;
+  return toArrayLang[0];
 }

@@ -1,9 +1,11 @@
-import { RegistryParams } from "../types/registry.type";
-import RegistryBuilder from "./registry";
-import MessageBuilder from "./message";
-import PolicyBuilder from "./policy";
+import { RegistryParams } from "../types/registry.type.js";
+import RegistryBuilder from "./registry.js";
+import MessageBuilder from "./message.js";
+import PolicyBuilder from "./policy.js";
 import crypto from "crypto";
 import { Buffer } from "buffer";
+import extractLanguage from "../utils/extract-lang.js";
+import { cacheBookType } from "../types/actions.types.js";
 
 /**
  * @class Actions
@@ -14,6 +16,7 @@ export default class Actions {
   private registry: RegistryBuilder;
   private message: MessageBuilder;
   private policy: PolicyBuilder;
+  private cache_book: cacheBookType;
 
   /**
    * @constructor
@@ -34,15 +37,20 @@ export default class Actions {
     this.registry = registry;
     this.message = message;
     this.policy = policy;
+    this.cache_book = null;
   }
 
   /**
    * @method BookRegistry
    * @description Generates an encrypted list of available API registries and application versions.
    * This is used to securely expose allowed actions to the client side.
-   * @returns {Object} An object containing encryption metadata (iv, type_base) and the encrypted 'data' string.
+   * @returns {Object} An object containing encryption metadata (iv, type_base) and the encrypted "data" string.
    */
   BookRegistry() {
+    // Have Cache
+    if (this.cache_book) {
+      return this.cache_book;
+    }
     // Default Configuration
     const algorithm = "aes-256-ctr";
     const type_base = "hex";
@@ -71,12 +79,14 @@ export default class Actions {
       cipher.update(JSON.stringify(buildRegistry), "utf-8"),
       cipher.final(),
     ]);
-    return {
+    const buildCache = {
       iv_length: ivLength,
       type_base: type_base,
       iv: ivKey.toString(type_base),
       data: results.toString(type_base),
     };
+    this.cache_book = buildCache;
+    return buildCache;
   }
 
   /**
@@ -87,55 +97,64 @@ export default class Actions {
    * @param {RegistryParams["system"]} system - The system context (headers, cookies, ip, etc.) from the request.
    * @returns {Object} A unified response object containing headers, cookies, status code, and the final data/error payload.
    */
-  private ResponseBuilder(dataRes: any = {}, system: RegistryParams["system"]) {
-    const responseStatus =
-      !dataRes.data ||
-      !!dataRes.error ||
+  private ResponseBuilder(
+    dataRes: any = {},
+    system: RegistryParams["system"],
+    lang: string = "en",
+  ) {
+    const isError =
       !dataRes ||
       typeof dataRes !== "object" ||
-      !!Array.isArray(dataRes)
-        ? dataRes.status || 400
-        : dataRes.status || 200;
-    const setHeaders =
-      typeof dataRes.headers === "object" && !Array.isArray(dataRes.headers)
-        ? Object.entries(dataRes.headers).map(([key, value]) => {
-            return {
-              key: key,
-              value: value,
-            };
-          })
-        : [];
-    const setCookie = Array.isArray(dataRes.set_cookie)
-      ? (dataRes.set_cookie || []).filter(
-          (a: any) =>
-            typeof a === "object" && !Array.isArray(a) && a.key && a.value,
-        )
-      : [];
-    const rmCookie = Array.isArray(dataRes.rm_cookie)
-      ? (dataRes.rm_cookie || []).filter(
-          (a: any) => typeof a === "object" && !Array.isArray(a) && a.key,
-        )
-      : [];
-    const redirect = dataRes.redirect || null;
+      Array.isArray(dataRes) ||
+      !!dataRes.error ||
+      !dataRes.data;
+    const responseStatus = dataRes?.status || (isError ? 400 : 200);
+    const redirect = dataRes?.redirect || null;
 
+    const setHeaders = [];
     if (
-      !dataRes.data ||
-      !!dataRes.error ||
-      !dataRes ||
-      typeof dataRes !== "object" ||
-      !!Array.isArray(dataRes)
+      dataRes?.headers &&
+      typeof dataRes.headers === "object" &&
+      !Array.isArray(dataRes.headers)
     ) {
+      for (const [key, value] of Object.entries(dataRes.headers)) {
+        setHeaders.push({ key, value });
+      }
+    }
+
+    const setCookie = [];
+    if (Array.isArray(dataRes?.set_cookie)) {
+      for (const c of dataRes.set_cookie) {
+        if (c && typeof c === "object" && c.key && c.value) setCookie.push(c);
+      }
+    }
+
+    const rmCookie = [];
+    if (Array.isArray(dataRes?.rm_cookie)) {
+      for (const c of dataRes.rm_cookie) {
+        if (c && typeof c === "string") rmCookie.push(c);
+      }
+    }
+
+    const baseResponse = {
+      header: setHeaders,
+      set_cookie: setCookie,
+      rm_cookie: rmCookie,
+      status: responseStatus,
+      redirect: redirect,
+    };
+
+    if (isError) {
+      const errorCode = dataRes?.error || "system:no-response-sending";
       const buildingMessage = this.message.error(
-        dataRes.error || "system:no-response-sending",
-        dataRes.params || [],
+        errorCode,
+        dataRes?.params || [],
+        lang,
       );
+
       return {
-        header: setHeaders,
-        set_cookie: setCookie,
-        rm_cookie: rmCookie,
-        status: responseStatus,
-        redirect: redirect,
-        error: dataRes.error || "system:no-response-sending",
+        ...baseResponse,
+        error: errorCode,
         response: {
           status: responseStatus,
           message: buildingMessage.message,
@@ -147,11 +166,7 @@ export default class Actions {
     }
 
     return {
-      header: setHeaders,
-      set_cookie: setCookie,
-      rm_cookie: rmCookie,
-      status: responseStatus,
-      redirect: redirect,
+      ...baseResponse,
       error: null,
       response: {
         status: responseStatus,
@@ -166,52 +181,104 @@ export default class Actions {
    * @param {RegistryParams} params - The request payload containing system info, type, data, and optional middleware state.
    * @returns {Promise<Object>} A promise that resolves to a standardized response object via ResponseBuilder.
    */
-  async SystemAction({ system, middleware = {}, type, data }: RegistryParams) {
+  async SystemAction({
+    system,
+    middleware = {},
+    context_manager = "system-action",
+    type,
+    data,
+  }: RegistryParams) {
+    const headers = system?.headers || {};
+    const clientLangHeader =
+      headers["x-seishiro-lang"] || headers["accept-language"];
+    const activeLang = clientLangHeader
+      ? extractLanguage(clientLangHeader)
+      : system?.lang || "en";
+
     try {
-      const showregistry = this.registry;
-      const getregistry = showregistry.get(type || "");
-      if (!getregistry) {
+      const policyInfo = this.policy.apply();
+
+      const clientVersion = headers["x-seishiro-client"];
+
+      if (context_manager === "api-action" && !clientVersion) {
         return this.ResponseBuilder(
-          {
-            error: "system:no-registry",
-            status: 404,
-          },
+          { 
+            error: "system:client-version-required",
+            status: 400 
+          }, 
           system,
+          activeLang
+        );
+      };
+
+      if (clientVersion && context_manager === "api-action") {
+        const vInfo = this.policy.version_info(clientVersion);
+
+        if (!vInfo.is_version_min && vInfo.info_upgrade) {
+          return this.ResponseBuilder(
+            {
+              error: "system:need-upgrade-client",
+              status: 426,
+              params: [
+                { min: policyInfo.version_min, now: policyInfo.version_now },
+              ],
+            },
+            system,
+            activeLang,
+          );
+        }
+      }
+
+      const handler = this.registry.get(type || "");
+      if (!handler) {
+        return this.ResponseBuilder(
+          { error: "system:no-registry", status: 404 },
+          system,
+          activeLang,
         );
       }
-      if (Array.isArray(getregistry)) {
-        const middlewareExecuted = await getregistry[0]({
-          system,
+
+      const systemWithLang = { ...system, lang: activeLang };
+
+      let currentMiddleware = middleware;
+      let finalHandler = handler;
+
+      if (Array.isArray(handler)) {
+        const [middlewareFn, controllerFn] = handler;
+        const mwResult = await middlewareFn({
+          system: systemWithLang,
           middleware,
           type,
           data,
         });
-        let responseMiddleware = middlewareExecuted;
-        if (!middlewareExecuted?.skipBuilder) {
-          responseMiddleware = this.ResponseBuilder(middlewareExecuted, system);
+
+        if (policyInfo.skip_middleware_context || mwResult?.skipBuilder) {
+          currentMiddleware = mwResult;
+        } else {
+          currentMiddleware = this.ResponseBuilder(
+            mwResult,
+            systemWithLang,
+            activeLang,
+          );
         }
-        const executedResponse = await getregistry[1]({
-          system,
-          middleware: responseMiddleware,
-          type,
-          data,
-        });
-        return this.ResponseBuilder(executedResponse, system);
+
+        finalHandler = controllerFn;
       }
-      const executedResponse = await getregistry({
-        system,
-        middleware,
+
+      const executedResponse = await (finalHandler as Function)({
+        system: systemWithLang,
+        middleware: currentMiddleware,
         type,
         data,
       });
-      return this.ResponseBuilder(executedResponse, system);
+
+      return this.ResponseBuilder(executedResponse, systemWithLang, activeLang);
     } catch (error) {
+      console.error("[Seishiro Core Error]:", error);
       return this.ResponseBuilder(
-        {
-          error: "system:internal-server-error",
-          status: 500,
-        },
+        { error: "system:internal-server-error", status: 500 },
         system,
+        activeLang,
       );
     }
   }
@@ -225,15 +292,25 @@ export default class Actions {
    */
   async ServerAction({ system, middleware, type, data }: RegistryParams) {
     if (this.policy.apply().noaction_server.includes(type || "")) {
+      const lang = extractLanguage(
+        system?.headers?.["x-seishiro-lang"] ||
+          system?.headers?.["accept-language"] ||
+          system?.lang ||
+          "en",
+      );
       return this.ResponseBuilder(
-        {
-          error: "system:no-registry",
-          status: 404,
-        },
+        { error: "system:no-registry", status: 404 },
         system,
+        lang,
       );
     }
-    return this.SystemAction({ system, middleware, type, data });
+    return this.SystemAction({
+      system,
+      middleware,
+      context_manager: "server-action",
+      type,
+      data,
+    });
   }
 
   /**
@@ -245,14 +322,24 @@ export default class Actions {
    */
   async APIAction({ system, middleware, type, data }: RegistryParams) {
     if (this.policy.apply().noaction_api.includes(type || "")) {
+      const lang = extractLanguage(
+        system?.headers?.["x-seishiro-lang"] ||
+          system?.headers?.["accept-language"] ||
+          system?.lang ||
+          "en",
+      );
       return this.ResponseBuilder(
-        {
-          error: "system:no-registry",
-          status: 404,
-        },
+        { error: "system:no-registry", status: 404 },
         system,
+        lang,
       );
     }
-    return this.SystemAction({ system, middleware, type, data });
+    return this.SystemAction({
+      system,
+      middleware,
+      context_manager: "api-action",
+      type,
+      data,
+    });
   }
 }

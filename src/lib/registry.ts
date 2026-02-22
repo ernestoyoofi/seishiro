@@ -3,8 +3,8 @@ import type {
   RegistryFunction,
   RegistryLogic,
   RegistryMiddleware,
-} from "../types/registry.type";
-import formatKey from "../utils/format-key";
+} from "../types/registry.type.js";
+import formatKey from "../utils/format-key.js";
 
 /**
  * @class RegistryBuilder
@@ -12,14 +12,14 @@ import formatKey from "../utils/format-key";
  * and optional middlewares. It acts as the routing table for the Seishiro API system.
  */
 export default class RegistryBuilder {
-  private registry_logic: RegistryLogic = {};
+  private registry_logic: RegistryLogic;
 
   /**
    * @constructor
    * @description Initializes an empty registry storage.
    */
   constructor() {
-    this.registry_logic = {};
+    this.registry_logic = new Map();
   }
 
   /**
@@ -46,9 +46,9 @@ export default class RegistryBuilder {
     }
 
     if (!!middleware && typeof middleware === "function") {
-      this.registry_logic[keyStr] = [middleware, function_regis];
+      this.registry_logic.set(keyStr, [middleware, function_regis]);
     } else {
-      this.registry_logic[keyStr] = function_regis;
+      this.registry_logic.set(keyStr, function_regis);
     }
   }
 
@@ -63,7 +63,7 @@ export default class RegistryBuilder {
     key: RegistryKey,
   ): RegistryFunction | [RegistryMiddleware, RegistryFunction] | undefined {
     const keyStr = formatKey(key);
-    return this.registry_logic[keyStr] || undefined;
+    return this.registry_logic.get(keyStr) || undefined;
   }
 
   /**
@@ -83,18 +83,20 @@ export default class RegistryBuilder {
    * @throws {Error} If the input is not a RegistryBuilder instance or a valid mapping object.
    */
   use(input: RegistryBuilder | RegistryLogic): void {
-    const logic =
-      input instanceof RegistryBuilder ? input.registry_logic : input;
-
-    if (typeof logic === "object" && logic !== null) {
-      Object.entries(logic).forEach(([key, val]) => {
+    if (input instanceof RegistryBuilder) {
+      // 5. Gabungkan Map dengan efisien
+      for (const [key, val] of input.registry_logic) {
+        this.registry_logic.set(key, val);
+      }
+    } else if (typeof input === "object" && input !== null) {
+      // Loop object biasa jika inputnya POJO
+      for (const [key, val] of Object.entries(input)) {
         if (Array.isArray(val)) {
-          const [middleware, func] = val;
-          this.set(key, func, middleware);
+          this.set(key, val[1], val[0]);
         } else if (typeof val === "function") {
           this.set(key, val);
         }
-      });
+      }
     } else {
       throw new Error(
         'The "use" input must be a RegistryBuilder or mapping object!',

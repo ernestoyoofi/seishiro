@@ -8,15 +8,11 @@ export type MessageErrorContext = string;
 // Message Error Context Slug
 export type MessageErrorContextSlug = string;
 // Message Error Context Options
-export type MessageErrorContextOpt = object;
+export type MessageErrorContextOpt = Record<string, string>;
 // Message Error Context Tracker ID
 export type MessageErrorContextTrack = string;
 // Message Logic Language
-export type MessageLogicLang = {
-  [key: MessageLang]: {
-    [key: MessageKey]: MessageValue;
-  };
-};
+export type MessageLogicLang = Map<MessageLang, Map<MessageKey, MessageValue>>;
 // Message Logic
 export type MessageLogic = Record<MessageKey, MessageValue>;
 // Message Error Context

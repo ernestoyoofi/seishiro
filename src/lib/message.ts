@@ -7,9 +7,9 @@ import type {
   MessageErrorContext,
   MessageErrorContextOpt,
   MessageErrorContextSlug,
-} from "../types/message.type";
-import formatKey from "../utils/format-key";
-import { DefaultLanguage } from "../constants/message";
+} from "../types/message.type.js";
+import formatKey from "../utils/format-key.js";
+import { DefaultLanguage } from "../constants/message.js";
 
 /**
  * @class MessageBuilder
@@ -18,7 +18,7 @@ import { DefaultLanguage } from "../constants/message";
  */
 export default class MessageBuilder {
   private message_build_lang: MessageLang = "";
-  private message_logic: MessageLogicLang = {};
+  private message_logic: MessageLogicLang = new Map();
 
   /**
    * @constructor
@@ -30,7 +30,7 @@ export default class MessageBuilder {
       .toLowerCase()
       .replace(/[^a-z]/g, "")
       .slice(0, 2);
-    this.message_logic = {};
+    this.message_logic = new Map();
   }
 
   /**
@@ -41,20 +41,17 @@ export default class MessageBuilder {
    * @throws {Error} If key or value is not a string.
    */
   set(key: MessageKey, value: MessageValue): void {
+    if (typeof value !== "string" || typeof key !== "string") {
+      throw new Error("Key and Value must be string!");
+    }
+
     const keyStr = formatKey(key);
 
-    if (typeof value !== "string") {
-      throw new Error("Message value is only type string!");
-    }
-    if (typeof key !== "string") {
-      throw new Error("Message key is only type string!");
+    if (!this.message_logic.has(this.message_build_lang)) {
+      this.message_logic.set(this.message_build_lang, new Map());
     }
 
-    if (!this.message_logic[this.message_build_lang]) {
-      this.message_logic[this.message_build_lang] = {};
-    }
-
-    this.message_logic[this.message_build_lang][keyStr] = String(value).trim();
+    this.message_logic.get(this.message_build_lang)!.set(keyStr, value.trim());
   }
 
   /**
@@ -70,29 +67,18 @@ export default class MessageBuilder {
     lang: MessageLang = this.message_build_lang,
   ): MessageValue {
     const keyStr = formatKey(key);
-    let langSupport: MessageLang = lang;
+    let langMap = this.message_logic.get(lang);
 
-    // Not Language On Logic
-    if (!this.message_logic[langSupport]) {
-      console.warn(
-        "[Debugging Message]: Language not found on logic, using default language!",
-      );
-      if (this.message_logic[DefaultLanguage]) {
-        langSupport = DefaultLanguage;
-      } else {
-        langSupport = Object.keys(this.message_logic || {})[0];
+    if (!langMap) {
+      langMap = this.message_logic.get(DefaultLanguage);
+      if (!langMap && this.message_logic.size > 0) {
+        langMap = this.message_logic.values().next().value;
       }
     }
 
-    if (!this.message_logic[langSupport]) {
-      console.warn(
-        "[Debugging Message]: Language or variable not found on logic!",
-      );
-      return String(`[!NoneVariable ${keyStr}]`);
-    }
+    if (!langMap) return `[!NoneVariable ${keyStr}]`;
 
-    // Return
-    return String(this.message_logic[langSupport][keyStr] || "").trim();
+    return langMap.get(keyStr) || "";
   }
 
   /**
@@ -108,15 +94,15 @@ export default class MessageBuilder {
     errorOpt: MessageErrorContextOpt = {},
     lang: MessageLang = this.message_build_lang,
   ): string {
-    let messageContext: string = this.get(errorSlug, lang);
+    const messageContext = this.get(errorSlug, lang);
 
-    Object.keys(errorOpt || {}).forEach((keys: string) => {
-      const values = (errorOpt as Record<string, string>)[keys] || "";
-      const pattern = new RegExp(`{{${keys}}}`, "g");
-      messageContext = messageContext.replace(pattern, values);
+    if (!errorOpt || Object.keys(errorOpt).length === 0) {
+      return messageContext;
+    }
+
+    return messageContext.replace(/{{(\w+)}}/g, (match, key) => {
+      return errorOpt[key] || match;
     });
-
-    return messageContext;
   }
 
   /**
@@ -132,21 +118,34 @@ export default class MessageBuilder {
     errorOpts: MessageErrorContextOpt[] = [],
     lang: MessageLang = this.message_build_lang,
   ) {
-    const [protocol, ...messages] = String(errorStr || "").split(":");
-    const messageContext = String(messages.join(":")).split("|");
+    const delimiterIndex = errorStr.indexOf(":");
+    if (delimiterIndex === -1) {
+      return {
+        protocol: "unknown",
+        context: [errorStr],
+        params: errorOpts,
+        message: errorStr,
+      };
+    }
 
-    const messageArrayCtx = messageContext
-      .map((errorSlug, key) => {
-        const getOpt = errorOpts[key];
-        return this.errorMessage(errorSlug, getOpt, lang);
-      })
-      .join(", ");
+    const protocol = formatKey(errorStr.substring(0, delimiterIndex));
+    const messageContext = errorStr.substring(delimiterIndex + 1).split("|");
+
+    let finalMessage = "";
+    for (let i = 0; i < messageContext.length; i++) {
+      const translated = this.errorMessage(
+        messageContext[i],
+        errorOpts[i],
+        lang,
+      );
+      finalMessage += (i === 0 ? "" : ", ") + translated;
+    }
 
     return {
-      protocol: formatKey(protocol),
+      protocol,
       context: messageContext,
       params: errorOpts,
-      message: messageArrayCtx,
+      message: finalMessage,
     };
   }
 
@@ -168,15 +167,16 @@ export default class MessageBuilder {
   use(input: MessageBuilder | MessageLogic): void {
     if (input instanceof MessageBuilder) {
       const otherLogic = input.apply();
-      for (const lang in otherLogic) {
-        if (Object.prototype.hasOwnProperty.call(otherLogic, lang)) {
-          const messages = otherLogic[lang];
-          if (!this.message_logic[lang]) {
-            this.message_logic[lang] = {};
-          }
-          Object.assign(this.message_logic[lang], messages);
+      otherLogic.forEach((messages, lang) => {
+        let currentMessages = this.message_logic.get(lang);
+        if (!currentMessages) {
+          currentMessages = new Map();
+          this.message_logic.set(lang, currentMessages);
         }
-      }
+        messages.forEach((value, key) => {
+          currentMessages!.set(key, value);
+        });
+      });
     } else if (typeof input === "object" && input !== null) {
       for (const key in input) {
         if (Object.prototype.hasOwnProperty.call(input, key)) {
