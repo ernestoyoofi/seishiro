@@ -43,7 +43,7 @@ export async function ActionRequest(c: any) {
  * @returns {any} The Hono response object.
  */
 export function ActionResponse(c: any, requestdata: any) {
-  if (requestdata.redirect) {
+  if (!!requestdata?.redirect) {
     return c.redirect(requestdata.redirect);
   }
 

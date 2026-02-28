@@ -38,7 +38,7 @@ export async function ActionRequest(ctx: any) {
  * @returns {any} The JSON response object.
  */
 export function ActionResponse(set: any, requestdata: any) {
-  if (requestdata.redirect) {
+  if (!!requestdata?.redirect) {
     set.redirect = requestdata.redirect;
     return;
   }

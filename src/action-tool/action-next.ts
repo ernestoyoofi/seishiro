@@ -98,7 +98,7 @@ export async function ActionResponse(req: Request, requestdata: any) {
   // @ts-ignore
   const { NextResponse } = (await import("next/server")) as any;
 
-  if (requestdata.redirect) {
+  if (!!requestdata?.redirect) {
     return NextResponse.redirect(new URL(requestdata.redirect, req.url));
   }
 

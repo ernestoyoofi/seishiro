@@ -39,7 +39,7 @@ export function ActionRequest(req: any) {
  * @returns {any} The Express response object.
  */
 export function ActionResponse(res: any, requestdata: any) {
-  if (requestdata.redirect) {
+  if (!!requestdata?.redirect) {
     return res.redirect(requestdata.redirect);
   }
 

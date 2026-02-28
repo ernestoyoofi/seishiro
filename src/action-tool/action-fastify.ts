@@ -38,7 +38,7 @@ export function ActionRequest(req: any) {
  * @returns {any} The Fastify reply object.
  */
 export function ActionResponse(reply: any, requestdata: any) {
-  if (requestdata.redirect) {
+  if (!!requestdata?.redirect) {
     return reply.redirect(requestdata.redirect);
   }
 
