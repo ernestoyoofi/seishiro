@@ -10,6 +10,7 @@ Seishiro eliminates the complexity of routing folder structures and replaces the
    npm install seishiro
    # OR
    bun add seishiro
+   # OR
    yarn add seishiro
    ```
 

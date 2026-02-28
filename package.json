@@ -1,6 +1,6 @@
 {
   "name": "seishiro",
-  "version": "0.2.21-dev",
+  "version": "0.2.2-release",
   "description": "The Centralized API Orchestrator for Modern Web Applications.",
   "type": "module",
   "main": "./cjs/index.js",
