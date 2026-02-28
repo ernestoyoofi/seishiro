@@ -10,18 +10,6 @@
  */
 
 export default function extractLanguage(lang: string = "") {
-  const acceptLang = String(lang || "").trim();
-
-  const toArrayLang: string[] = acceptLang
-    .split(",")
-    .map((item) => {
-      // Split by ';' to remove quality weights (q=0.9)
-      // Then split by '-' to convert locale (en-US) to primary language (en)
-      const lang = item.split(";")[0].split("-")[0];
-      return lang.trim();
-    })
-    // Remove duplicates from the array
-    .filter((value, index, self) => self.indexOf(value) === index);
-
-  return toArrayLang[0];
+  const first = String(lang || "").split(",")[0] || "en";
+  return first.split(";")[0].split("-")[0].trim().toLowerCase() || "en";
 }

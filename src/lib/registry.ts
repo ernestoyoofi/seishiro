@@ -84,23 +84,13 @@ export default class RegistryBuilder {
    */
   use(input: RegistryBuilder | RegistryLogic): void {
     if (input instanceof RegistryBuilder) {
-      // 5. Gabungkan Map dengan efisien
-      for (const [key, val] of input.registry_logic) {
-        this.registry_logic.set(key, val);
-      }
-    } else if (typeof input === "object" && input !== null) {
-      // Loop object biasa jika inputnya POJO
-      for (const [key, val] of Object.entries(input)) {
-        if (Array.isArray(val)) {
-          this.set(key, val[1], val[0]);
-        } else if (typeof val === "function") {
-          this.set(key, val);
-        }
-      }
+      input.apply().forEach((v, k) => this.registry_logic.set(k, v));
+    } else if (typeof input === "object" && input) {
+      Object.entries(input).forEach(([k, v]: [string, any]) => {
+        Array.isArray(v) ? this.set(k, v[1], v[0]) : this.set(k, v);
+      });
     } else {
-      throw new Error(
-        'The "use" input must be a RegistryBuilder or mapping object!',
-      );
+      throw new Error("Invalid 'use' input!");
     }
   }
 }

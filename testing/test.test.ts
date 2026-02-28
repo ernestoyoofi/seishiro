@@ -1,4 +1,4 @@
-import { RegistryBuilder } from "./dist";
+import { RegistryBuilder } from "../dist/esm";
 
 // Registry Builder
 test("Registry Builder", () => {

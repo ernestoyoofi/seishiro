@@ -3,7 +3,7 @@ import {
   MessageBuilder,
   PolicyBuilder,
   Actions,
-} from "./dist";
+} from "../dist/esm";
 
 const timeStart = new Date().getTime();
 
@@ -51,6 +51,6 @@ console.log({
   time: timeEnd - timeStart,
 });
 
-message.set("variable", "Hii {{name}}")
+message.set("variable", "Hii {{name}}");
 
-console.log(message.errorMessage("variable", { name: "Shiroko!" }))
+console.log(message.errorMessage("variable", { name: "Shiroko!" }));

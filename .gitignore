@@ -1,2 +1,15 @@
-node_modules
-dist
+# Main Ideas
+/prd
+/content-library
+
+# Demo Testing
+/testing/node_modules
+
+# Dependencies
+/node_modules
+
+# Build
+/dist
+
+# Others
+.env

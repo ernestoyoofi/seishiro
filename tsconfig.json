@@ -14,8 +14,10 @@
   },
   "include": ["./src/**/*.ts"],
   "exclude": [
+    "testing",
+    "testing/*",
     "minify.ts",
-    "testing.js",
+    "testing/testing.js",
     "test.test.ts",
     "node_modules",
     "dist",

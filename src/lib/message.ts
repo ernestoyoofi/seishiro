@@ -45,13 +45,12 @@ export default class MessageBuilder {
       throw new Error("Key and Value must be string!");
     }
 
-    const keyStr = formatKey(key);
-
     if (!this.message_logic.has(this.message_build_lang)) {
       this.message_logic.set(this.message_build_lang, new Map());
     }
-
-    this.message_logic.get(this.message_build_lang)!.set(keyStr, value.trim());
+    this.message_logic
+      .get(this.message_build_lang)!
+      .set(formatKey(key), value.trim());
   }
 
   /**
@@ -100,9 +99,7 @@ export default class MessageBuilder {
       return messageContext;
     }
 
-    return messageContext.replace(/{{(\w+)}}/g, (match, key) => {
-      return errorOpt[key] || match;
-    });
+    return messageContext.replace(/{{(\w+)}}/g, (m, k) => errorOpt[k] || m);
   }
 
   /**
@@ -166,30 +163,16 @@ export default class MessageBuilder {
    */
   use(input: MessageBuilder | MessageLogic): void {
     if (input instanceof MessageBuilder) {
-      const otherLogic = input.apply();
-      otherLogic.forEach((messages, lang) => {
-        let currentMessages = this.message_logic.get(lang);
-        if (!currentMessages) {
-          currentMessages = new Map();
-          this.message_logic.set(lang, currentMessages);
-        }
-        messages.forEach((value, key) => {
-          currentMessages!.set(key, value);
-        });
+      input.apply().forEach((msgs, lang) => {
+        const current = this.message_logic.get(lang) || new Map();
+        if (!this.message_logic.has(lang))
+          this.message_logic.set(lang, current);
+        msgs.forEach((v, k) => current.set(k, v));
       });
-    } else if (typeof input === "object" && input !== null) {
-      for (const key in input) {
-        if (Object.prototype.hasOwnProperty.call(input, key)) {
-          this.set(
-            key as MessageKey,
-            (input as MessageLogic)[key] as MessageValue,
-          );
-        }
-      }
+    } else if (typeof input === "object" && input) {
+      Object.entries(input).forEach(([k, v]) => this.set(k, String(v)));
     } else {
-      throw new Error(
-        'The "use" input must be a MessageBuilder or mapping object!',
-      );
+      throw new Error("Invalid 'use' input!");
     }
   }
 }

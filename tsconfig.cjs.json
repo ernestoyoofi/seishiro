@@ -8,6 +8,8 @@
   },
   "include": ["./src/**/*.ts"],
   "exclude": [
+    "testing",
+    "testing/*",
     "minify.ts",
     "testing.js",
     "test.test.ts",

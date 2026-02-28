@@ -2,10 +2,10 @@ import { RegistryParams } from "../types/registry.type.js";
 import RegistryBuilder from "./registry.js";
 import MessageBuilder from "./message.js";
 import PolicyBuilder from "./policy.js";
-import crypto from "crypto";
-import { Buffer } from "buffer";
 import extractLanguage from "../utils/extract-lang.js";
 import { cacheBookType } from "../types/actions.types.js";
+import crypto from "crypto";
+import { Buffer } from "buffer";
 
 /**
  * @class Actions
@@ -16,6 +16,7 @@ export default class Actions {
   private registry: RegistryBuilder;
   private message: MessageBuilder;
   private policy: PolicyBuilder;
+  private heading: { version: string; lang: string };
   private cache_book: cacheBookType;
 
   /**
@@ -29,14 +30,20 @@ export default class Actions {
     registry,
     message,
     policy,
+    heading = {
+      version: "x-seishiro-client",
+      lang: "x-seishiro-lang",
+    },
   }: {
     registry: RegistryBuilder;
     message: MessageBuilder;
     policy: PolicyBuilder;
+    heading?: { version: string; lang: string };
   }) {
     this.registry = registry;
     this.message = message;
     this.policy = policy;
+    this.heading = heading;
     this.cache_book = null;
   }
 
@@ -108,70 +115,49 @@ export default class Actions {
       Array.isArray(dataRes) ||
       !!dataRes.error ||
       !dataRes.data;
-    const responseStatus = dataRes?.status || (isError ? 400 : 200);
-    const redirect = dataRes?.redirect || null;
+    const status = dataRes?.status || (isError ? 400 : 200);
 
-    const setHeaders = [];
-    if (
-      dataRes?.headers &&
-      typeof dataRes.headers === "object" &&
-      !Array.isArray(dataRes.headers)
-    ) {
-      for (const [key, value] of Object.entries(dataRes.headers)) {
-        setHeaders.push({ key, value });
-      }
-    }
+    const header = Object.entries(dataRes?.headers || {})
+      .filter(([_, v]) => v !== undefined)
+      .map(([key, value]) => ({ key, value }));
 
-    const setCookie = [];
-    if (Array.isArray(dataRes?.set_cookie)) {
-      for (const c of dataRes.set_cookie) {
-        if (c && typeof c === "object" && c.key && c.value) setCookie.push(c);
-      }
-    }
+    const set_cookie = (
+      Array.isArray(dataRes?.set_cookie) ? dataRes.set_cookie : []
+    ).filter((c: any) => c?.key && c?.value);
 
-    const rmCookie = [];
-    if (Array.isArray(dataRes?.rm_cookie)) {
-      for (const c of dataRes.rm_cookie) {
-        if (c && typeof c === "string") rmCookie.push(c);
-      }
-    }
+    const rm_cookie = (
+      Array.isArray(dataRes?.rm_cookie) ? dataRes.rm_cookie : []
+    ).filter((c: any) => typeof c === "string" || c?.key);
 
-    const baseResponse = {
-      header: setHeaders,
-      set_cookie: setCookie,
-      rm_cookie: rmCookie,
-      status: responseStatus,
-      redirect: redirect,
+    const base = {
+      header,
+      set_cookie,
+      rm_cookie,
+      status,
+      redirect: dataRes?.redirect || null,
     };
 
     if (isError) {
-      const errorCode = dataRes?.error || "system:no-response-sending";
-      const buildingMessage = this.message.error(
-        errorCode,
-        dataRes?.params || [],
-        lang,
-      );
+      const error = dataRes?.error || "system:no-response-sending";
+      const msg = this.message.error(error, dataRes?.params || [], lang);
 
       return {
-        ...baseResponse,
-        error: errorCode,
+        ...base,
+        error,
         response: {
-          status: responseStatus,
-          message: buildingMessage.message,
-          protocol: buildingMessage.protocol,
-          context: buildingMessage.context,
-          params: buildingMessage.params,
+          status,
+          message: msg.message,
+          protocol: msg.protocol,
+          context: msg.context,
+          params: msg.params,
         },
       };
     }
 
     return {
-      ...baseResponse,
+      ...base,
       error: null,
-      response: {
-        status: responseStatus,
-        data: dataRes.data || {},
-      },
+      response: { status, data: dataRes.data || {} },
     };
   }
 
@@ -188,28 +174,30 @@ export default class Actions {
     type,
     data,
   }: RegistryParams) {
-    const headers = system?.headers || {};
-    const clientLangHeader =
-      headers["x-seishiro-lang"] || headers["accept-language"];
-    const activeLang = clientLangHeader
-      ? extractLanguage(clientLangHeader)
-      : system?.lang || "en";
+    const activeLang = extractLanguage(
+      system?.headers?.[this.heading.lang] ||
+        system?.headers?.["accept-language"] ||
+        system?.lang ||
+        "en",
+    );
 
     try {
       const policyInfo = this.policy.apply();
 
-      const clientVersion = headers["x-seishiro-client"];
+      const clientVersion = String(
+        system?.headers?.[this.heading.version] || "",
+      ).trim();
 
       if (context_manager === "api-action" && !clientVersion) {
         return this.ResponseBuilder(
-          { 
+          {
             error: "system:client-version-required",
-            status: 400 
-          }, 
+            status: 400,
+          },
           system,
-          activeLang
+          activeLang,
         );
-      };
+      }
 
       if (clientVersion && context_manager === "api-action") {
         const vInfo = this.policy.version_info(clientVersion);
@@ -293,7 +281,7 @@ export default class Actions {
   async ServerAction({ system, middleware, type, data }: RegistryParams) {
     if (this.policy.apply().noaction_server.includes(type || "")) {
       const lang = extractLanguage(
-        system?.headers?.["x-seishiro-lang"] ||
+        system?.headers?.[this.heading.lang] ||
           system?.headers?.["accept-language"] ||
           system?.lang ||
           "en",
@@ -323,7 +311,7 @@ export default class Actions {
   async APIAction({ system, middleware, type, data }: RegistryParams) {
     if (this.policy.apply().noaction_api.includes(type || "")) {
       const lang = extractLanguage(
-        system?.headers?.["x-seishiro-lang"] ||
+        system?.headers?.[this.heading.lang] ||
           system?.headers?.["accept-language"] ||
           system?.lang ||
           "en",

@@ -1,18 +1,6 @@
 # Seishiro API
 
 Seishiro eliminates the complexity of routing folder structures and replaces them with a single control center. Just use one endpoint, manage it through the Registry, and control your entire application data flow (Web, Mobile, and SSR) with consistent standards.
-<!-- 
-## Tasks
-
-- [x] Registry Controllers
-- [x] Message Builder Error
-- [x] UnRegistry Base System
-- [x] Multi Language Respon
-- [x] Protocol Response
-- [x] Middleware Runner
-- [x] Action Executed
-- [x] Versioning Header
-- [x] Language Switch -->
 
 ## Installation
 
