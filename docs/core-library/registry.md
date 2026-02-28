@@ -1,5 +1,9 @@
 # Registry Builder
 
+Seishiro Registry controllers are the core of the Seishiro API system. They map unique action keys to their corresponding controllers and optional middleware functions.
+
+---
+
 The `RegistryBuilder` class serves as the central routing component for the Seishiro API system. It maps unique action keys to their corresponding controllers and optional middleware functions.
 
 ## Constructor

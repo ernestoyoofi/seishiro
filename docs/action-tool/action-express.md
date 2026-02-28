@@ -1,5 +1,9 @@
 # Action Express
 
+Action for Express
+
+---
+
 Provides integration between the Seishiro framework and the [Express.js](https://expressjs.com/) web framework.
 
 ## Methods
@@ -18,3 +22,25 @@ Constructs an Express.js `Response` object (`res`), natively handling redirects,
 - **`res`**: The Express.js Response object (`res`).
 - **`requestdata`**: The standardized response configuration from Seishiro's execution.
 - **Returns**: The Express JSON response object or directly handles redirection responses.
+
+## Usage Example
+
+```typescript
+import express from "express";
+import { ActionTools, Actions } from "seishiro";
+
+// Assuming `actions` is your configured Actions instance
+const app = express();
+app.use(express.json());
+
+app.post("/api", async (req, res) => {
+  // 1. Extract context
+  const payload = ActionTools.ExpressJS.ActionRequest(req);
+  
+  // 2. Execute through Seishiro
+  const result = await actions.APIAction(payload);
+  
+  // 3. Return formatted response
+  return ActionTools.ExpressJS.ActionResponse(res, result);
+});
+```

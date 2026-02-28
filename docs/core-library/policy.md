@@ -1,5 +1,9 @@
 # Policy Builder
 
+Seishiro Policy Builder is a class that manages application-level policies. It controls security aspects such as the encryption passkey, version control, and protocol-specific action restrictions (Gatekeeping).
+
+---
+
 The `PolicyBuilder` class manages application-level policies. It controls security aspects such as the encryption passkey, version control, and protocol-specific action restrictions (Gatekeeping).
 
 ## Constructor

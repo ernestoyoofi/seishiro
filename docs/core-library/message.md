@@ -1,5 +1,9 @@
 # Message Builder
 
+Seishiro Message Builder is a class that handles multi-language response messages, error formatting, and dynamic template replacement. It allows the application to return consistent, localized messages across different platforms.
+
+---
+
 The `MessageBuilder` class handles multi-language response messages, error formatting, and dynamic template replacement. It allows the application to return consistent, localized messages across different platforms.
 
 ## Constructor

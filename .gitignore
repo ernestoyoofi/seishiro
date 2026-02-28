@@ -13,3 +13,5 @@
 
 # Others
 .env
+build_log.txt
+log*

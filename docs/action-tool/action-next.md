@@ -1,5 +1,9 @@
 # Action Next.js
 
+Action for Next.js
+
+---
+
 Provides integration between the Seishiro framework and the [Next.js](https://nextjs.org/) web framework, optimized for Next.js Server Actions and Route Handlers.
 
 ## Methods
@@ -18,3 +22,21 @@ Constructs a `NextResponse` handling absolute redirects, setting cookies asynchr
 - **`req`**: The original `Request` object wrapper (required for absolute URL redirect resolution mapping).
 - **`requestdata`**: The standardized response configuration from Seishiro's execution.
 - **Returns**: A fully materialized `NextResponse` JSON object structure resolving to the client.
+
+## Usage Example
+
+```typescript
+import { ActionTools, Actions } from "seishiro";
+
+// App Router API Route (e.g., app/api/route.ts)
+export async function POST(req: Request) {
+  // 1. Extract context (Next.js action request handles formData, blobs, and json natively)
+  const payload = await ActionTools.NextJS.ActionRequest(req);
+  
+  // 2. Execute through Seishiro
+  const result = await actions.APIAction(payload);
+  
+  // 3. Return formatted NextResponse
+  return await ActionTools.NextJS.ActionResponse(req, result);
+}
+```

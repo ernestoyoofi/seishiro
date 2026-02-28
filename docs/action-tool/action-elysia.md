@@ -1,5 +1,9 @@
 # Action Elysia
 
+Action for Elysia
+
+---
+
 Provides integration between the Seishiro framework and the [ElysiaJS](https://elysiajs.com/) web framework.
 
 ## Methods
@@ -18,3 +22,24 @@ Constructs an Elysia response using the Elysia `set` object.
 - **`set`**: The Elysia response configuration object.
 - **`requestdata`**: The standardized response configuration from Seishiro's execution.
 - **Returns**: The JSON response object or modifies the `set.redirect` property if a redirect is triggered.
+
+## Usage Example
+
+```typescript
+import { Elysia } from "elysia";
+import { ActionTools, Actions } from "seishiro";
+
+// Assuming `actions` is your configured Actions instance
+const app = new Elysia();
+
+app.post("/api", async (ctx) => {
+  // 1. Extract context
+  const payload = await ActionTools.Elysia.ActionRequest(ctx);
+  
+  // 2. Execute through Seishiro
+  const result = await actions.APIAction(payload);
+  
+  // 3. Return formatted response
+  return ActionTools.Elysia.ActionResponse(ctx.set, result);
+});
+```

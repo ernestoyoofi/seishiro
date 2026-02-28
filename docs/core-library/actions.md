@@ -1,5 +1,9 @@
 # Actions
 
+Seishiro Actions is a class that orchestrates the execution flow of the Seishiro API. It coordinates between the `Registry`, `Message`, and `Policy` builders across different protocols.
+
+---
+
 The `Actions` class is the main orchestrator of the Seishiro API. It handles the execution flow by coordinating between the `Registry`, `Message`, and `Policy` builders across different protocols.
 
 ## Constructor
