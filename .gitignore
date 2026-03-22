@@ -3,7 +3,12 @@
 /content-library
 
 # Demo Testing
-/testing/node_modules
+/testing/
+/testing/next
+/testing/elysia
+/testing/express
+/testing/fastify
+/testing/hono
 
 # Dependencies
 /node_modules

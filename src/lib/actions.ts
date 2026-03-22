@@ -233,23 +233,27 @@ export default class Actions {
 
       if (Array.isArray(handler)) {
         const [middlewareFn, controllerFn] = handler;
-        const mwResult = await middlewareFn({
-          system: systemWithLang,
-          middleware,
-          type,
-          data,
-        });
+        const middlewares = Array.isArray(middlewareFn)
+          ? middlewareFn
+          : [middlewareFn];
 
-        if (policyInfo.skip_middleware_context || mwResult?.skipBuilder) {
-          currentMiddleware = mwResult;
-        } else {
-          currentMiddleware = this.ResponseBuilder(
-            mwResult,
-            systemWithLang,
-            activeLang,
-          );
+        const middlewareResults: any[] = [];
+        for (const mw of middlewares) {
+          const mwResult = await mw({
+            system: systemWithLang,
+            middleware: middlewareResults,
+            type,
+            data,
+          });
+
+          if (!!mwResult?.error && policyInfo.catch_middleware_context) {
+            return this.ResponseBuilder(mwResult, systemWithLang, activeLang);
+          }
+
+          middlewareResults.push(mwResult);
         }
 
+        currentMiddleware = middlewareResults;
         finalHandler = controllerFn;
       }
 

@@ -22,7 +22,7 @@ export default class PolicyBuilder {
   private noaction_api: PolicyNoActionAPIAction;
   private noaction_server: PolicyNoActionServerAction;
   private compiled_policy: any = null;
-  private skip_middleware_context: boolean;
+  private catch_middleware_context: boolean;
   private parsed_min: number[];
   private parsed_now: number[];
 
@@ -36,21 +36,26 @@ export default class PolicyBuilder {
    * @throws {Error} If passkey, version_now, or version_min is missing.
    */
   constructor({
-    passkey,
+    passkey = "seishiro",
     version_now,
     version_min,
     version_forceupdate = true,
-    skip_middleware_context = false,
+    catch_middleware_context = true,
   }: {
     passkey: string;
     version_now: string;
     version_min: string;
     version_forceupdate?: boolean;
-    skip_middleware_context?: boolean;
+    catch_middleware_context?: boolean;
   }) {
     if (!passkey || !version_now || !version_min) {
       throw new Error(
         "PolicyBuilder: passkey, version_now, and version_min are required!",
+      );
+    }
+    if (passkey === "seishiro") {
+      console.warn(
+        "[Seishiro/Policy Warn]: Passkey is currently still the default, please change it to a much safer one, it is not recommended to use the default one.",
       );
     }
     this.passkey = passkey;
@@ -61,7 +66,7 @@ export default class PolicyBuilder {
     this.version_forceupdate = version_forceupdate;
     this.noaction_api = [];
     this.noaction_server = [];
-    this.skip_middleware_context = skip_middleware_context;
+    this.catch_middleware_context = catch_middleware_context;
     this.refresh();
   }
 
@@ -134,7 +139,7 @@ export default class PolicyBuilder {
       version_forceupdate: this.version_forceupdate,
       noaction_api: this.noaction_api,
       noaction_server: this.noaction_server,
-      skip_middleware_context: this.skip_middleware_context,
+      catch_middleware_context: this.catch_middleware_context,
     };
   }
 

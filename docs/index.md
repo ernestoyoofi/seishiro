@@ -4,7 +4,9 @@ The Centralized API Orchestrator for Modern Web Applications.
 
 ---
 
-Seishiro is a library orchestrator API that eliminates the complexity of managing folder routing structures. Instead of managing dozens of scattered route files, Seishiro centralizes control of your application in a single Registry.
+![NPM Package seishiro](https://img.shields.io/npm/v/seishiro?style=for-the-badge)
+
+Seishiro is a library **orchestrator API** that **eliminates the complexity of managing folder routing structures**. Instead of managing dozens of scattered route files, Seishiro centralizes control of your application in a single Registry.
 
 Whether you are building a Web (REST), Mobile, or Server-Side Rendering (SSR) application, Seishiro ensures consistent data flow standards.
 
@@ -13,18 +15,25 @@ Whether you are building a Web (REST), Mobile, or Server-Side Rendering (SSR) ap
 Seishiro was born out of a common concern in modern application development: increasingly complex routing and inconsistent responses.
 
 1. **Eliminating Routing Complexity**
+
    Seishiro's main vision is to eliminate traditional folder routing management. Inspired by the flexibility of GraphQL, Seishiro uses a Single Request Command Dispatcher system. You no longer need to create dozens of route files; just use one endpoint as the control center for all your application actions.
 
 2. **Standardized Protocol Response**
+
    We believe developers shouldn't have to waste time setting HTTP statuses, manual headers, or different JSON structures in each file.
+
    a. **Auto-Building Response**: Seishiro automatically builds consistent status codes, headers, and data structures.
+
    b. **Immutable Structure**: Seishiro's response structure will never change, ensuring that the integration between the Backend and Frontend (Web, Mobile, SSR) is always in sync without any surprise breaking changes.
 
 3. **Developer-Centric Workflow**
+
    Seishiro follows the natural workflow of developers. By separating Registry, Policy, and Message, you can focus on business logic without having to think about the data delivery infrastructure repeatedly.
 
 4. **Integrated Versioning & Lifecycle**
+
    One of our main missions is to simplify application maintenance on the client side.
+   
    a. **Auto-Update Signal**: Through the versioning system in PolicyBuilder, Seishiro can detect the client version and provide direct instructions to display an update banner or force an automatic update on the View side.
    b. **Consistency at Scale**: Ensures that the application version running on the user's device is always compatible with the API on the server.
 

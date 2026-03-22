@@ -15,7 +15,7 @@ export type RegistryParams = {
   };
   type: RegistryKey;
   context_manager?: string;
-  middleware?: object | Function | Promise<any>;
+  middleware?: any;
   data: object;
 };
 // Registry Function
@@ -23,5 +23,6 @@ export type RegistryFunction = (params: RegistryParams) => any;
 export type RegistryMiddleware = (params: RegistryParams) => any;
 export type RegistryLogic = Map<
   RegistryKey,
-  RegistryFunction | [RegistryMiddleware, RegistryFunction]
+  | RegistryFunction
+  | [RegistryMiddleware | RegistryMiddleware[], RegistryFunction]
 >;

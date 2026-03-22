@@ -1,6 +1,6 @@
 {
   "name": "seishiro",
-  "version": "0.2.3-release",
+  "version": "0.2.31-dev",
   "description": "The Centralized API Orchestrator for Modern Web Applications.",
   "type": "module",
   "main": "./cjs/index.js",
@@ -23,7 +23,7 @@
     "lint": "biome check",
     "format": "biome format --write"
   },
-  "license": "AGPL-3.0",
+  "license": "Apache-2.0",
   "author": "Ernestoyoofi",
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",

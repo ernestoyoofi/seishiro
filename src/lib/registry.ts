@@ -34,7 +34,7 @@ export default class RegistryBuilder {
   set(
     key: RegistryKey,
     function_regis: RegistryFunction,
-    middleware?: RegistryMiddleware,
+    middleware?: RegistryMiddleware | RegistryMiddleware[],
   ): void {
     const keyStr = formatKey(key);
 
@@ -45,7 +45,10 @@ export default class RegistryBuilder {
       throw new Error("Registry key is only type string!");
     }
 
-    if (!!middleware && typeof middleware === "function") {
+    if (
+      middleware &&
+      (typeof middleware === "function" || Array.isArray(middleware))
+    ) {
       this.registry_logic.set(keyStr, [middleware, function_regis]);
     } else {
       this.registry_logic.set(keyStr, function_regis);
@@ -61,7 +64,10 @@ export default class RegistryBuilder {
    */
   get(
     key: RegistryKey,
-  ): RegistryFunction | [RegistryMiddleware, RegistryFunction] | undefined {
+  ):
+    | RegistryFunction
+    | [RegistryMiddleware | RegistryMiddleware[], RegistryFunction]
+    | undefined {
     const keyStr = formatKey(key);
     return this.registry_logic.get(keyStr) || undefined;
   }
