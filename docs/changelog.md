@@ -12,9 +12,9 @@ Update for Next.js driver, middleware rules and [Nova.js](https://github.com/unt
   <summary>Adding (4)</summary>
 
   1. Update a middleware 
-  2. New driver for Next.js to automaticly build API with folder structure.
-  3. Apply new middleware rules.
-  4. Try new support to [Nova.js](https://github.com/untrustnova/nova).
+  2. ? (pending...) New driver for Next.js to automaticly build API with folder structure.
+  3. ? (pending...) Apply new middleware rules.
+  4. ? (pending...) Try new support to [Nova.js](https://github.com/untrustnova/nova).
 
 </details>
 
