@@ -4,7 +4,7 @@ Update history of Seishiro
 
 ---
 
-## 0.2.31-dev (pending...)
+## 0.2.4-release
 
 Update for Next.js driver, middleware rules and [Nova.js](https://github.com/untrustnova/nova) support.
 
