@@ -7,6 +7,7 @@
  * @returns {Promise<Object>} A formatted object containing system context and business data.
  */
 import { mapHeaders, getIp, getLocation } from "../utils/system-helpers.js";
+import formatValue from "../utils/format-value.js";
 
 export async function ActionRequest(req: Request) {
   // @ts-ignore
@@ -51,7 +52,7 @@ export async function ActionRequest(req: Request) {
               const arrayBuffer = await value.arrayBuffer();
               current[part] = Buffer.from(arrayBuffer);
             } else {
-              current[part] = value;
+              current[part] = formatValue(value);
             }
           } else {
             current[part] = current[part] || {};

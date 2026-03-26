@@ -4,7 +4,7 @@ Seishiro Registry controllers are the core of the Seishiro API system. They map 
 
 ---
 
-The `RegistryBuilder` class serves as the central routing component for the Seishiro API system. It maps unique action keys to their corresponding controllers and optional middleware functions.
+The `Registry` class serves as the central routing component for the Seishiro API system. It maps unique action keys to their corresponding controllers and optional middleware functions.
 
 ## Constructor
 
@@ -48,10 +48,16 @@ Registers an execution controller string-key mapping. It optionally maps a middl
 **Usage without middleware:**
 
 ```typescript
-const registry = new RegistryBuilder();
+const registry = new Registry();
 
 registry.set("user:profile", async ({ data }) => {
-  return { status: 200, data: { name: "Ernest", id: data.id } };
+  return {
+    status: 200,
+    data: {
+      name: "sunaookamishiroko",
+      id: data.id
+    }
+  };
 });
 ```
 
@@ -62,12 +68,21 @@ const authMiddleware = async ({ system }) => {
   if (!system.headers.authorization) {
     return { error: "auth:unauthorized", status: 401 };
   }
-  return { user_id: 123 }; // Passed to the controller
+  return {
+    data: {
+      user_id: 123
+    }
+  }; // Passed to the controller
 };
 
 registry.set("user:settings", async ({ middleware }) => {
   // middleware contains { user_id: 123 } if auth succeeds
-  return { status: 200, data: { theme: "dark" } };
+  return {
+    status: 200,
+    data: {
+      theme: "dark"
+    }
+  };
 }, authMiddleware);
 ```
 
@@ -89,21 +104,25 @@ Retrieves the internal mapping object holding all route handlers and configurati
 
 ---
 
-### `use(input: RegistryBuilder | Record<string, any>): void`
-Merges another `RegistryBuilder` instance or a raw configuration object natively into the current registry. This permits clean module scaling across various files.
+### `use(input: Registry | Record<string, any>): void`
+Merges another `Registry` instance or a raw configuration object natively into the current registry. This permits clean module scaling across various files.
 
 **Usage:**
 
 ```typescript
-const authRoutes = new RegistryBuilder();
+const authRoutes = new Registry();
 authRoutes.set("auth:login", loginController);
 
 // Main registry
-const registry = new RegistryBuilder();
+const registry = new Registry();
 registry.use(authRoutes); // Merges 'auth:login' into the main registry
 
 // Or passing a plain object:
 registry.use({
-  "ping": () => ({ data: "pong" })
+  "ping": () => ({
+    data: {
+      message: "pong"
+    }
+  })
 });
 ```

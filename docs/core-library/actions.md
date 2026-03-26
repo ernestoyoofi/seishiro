@@ -18,16 +18,16 @@ constructor({
     lang: "x-seishiro-lang",
   },
 }: {
-  registry: RegistryBuilder;
-  message: MessageBuilder;
-  policy: PolicyBuilder;
+  registry: Registry;
+  message: Message;
+  policy: Policy;
   heading?: { version: string; lang: string };
 })
 ```
 
-- **`registry`**: An instance of `RegistryBuilder` to manage route and controller mappings.
-- **`message`**: An instance of `MessageBuilder` to handle localized error or response messages.
-- **`policy`**: An instance of `PolicyBuilder` to manage security and versioning rules.
+- **`registry`**: An instance of `Registry` to manage route and controller mappings.
+- **`message`**: An instance of `Message` to handle localized error or response messages.
+- **`policy`**: An instance of `Policy` to manage security and versioning rules.
 - **`heading`**: Optional configuration for custom headers extracting the client version (`x-seishiro-client`) and requested language (`x-seishiro-lang`).
 
 ---
@@ -93,7 +93,7 @@ const response = await actions.SystemAction({
 ---
 
 ### `async ServerAction(params: Omit<RegistryParams, "context_manager">): Promise<any>`
-The entry point for Server-side actions (e.g., Next.js Server Actions). It checks against server-specific policies defined in `PolicyBuilder` before executing the underlying `SystemAction`.
+The entry point for Server-side actions (e.g., Next.js Server Actions). It checks against server-specific policies defined in `Policy` before executing the underlying `SystemAction`.
 
 **Usage:**
 

@@ -11,7 +11,7 @@ export type RegistryParams = {
     };
     ip: string;
     location: string;
-    lang: string | "en";
+    lang?: string | "en";
   };
   type: RegistryKey;
   context_manager?: string;

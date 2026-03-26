@@ -34,12 +34,12 @@ Seishiro was born out of a common concern in modern application development: inc
 
    One of our main missions is to simplify application maintenance on the client side.
    
-   a. **Auto-Update Signal**: Through the versioning system in PolicyBuilder, Seishiro can detect the client version and provide direct instructions to display an update banner or force an automatic update on the View side.
+   a. **Auto-Update Signal**: Through the versioning system in Policy, Seishiro can detect the client version and provide direct instructions to display an update banner or force an automatic update on the View side.
    b. **Consistency at Scale**: Ensures that the application version running on the user's device is always compatible with the API on the server.
 
 ## Key Value Propositions
 
-1. **Centralized Control**: Manage all application endpoints in one RegistryBuilder.
+1. **Centralized Control**: Manage all application endpoints in one Registry.
 2. **Protocol Agnostic**: One logic for multiple protocols: API Action, Server Action (Next.js), and System Action.
 3. **Smart Messaging**: Multi-language error messaging system with dynamic variable support.
 4. **Security Layer**: Endpoint protection based on registry list encryption via AES-256-CTR.
@@ -62,10 +62,10 @@ bun add seishiro
 ```
 
 ```js
-import { RegistryBuilder, PolicyBuilder, Actions } from "seishiro"
+import { Registry, Policy, Actions } from "seishiro"
 
 // Set Your Variable Message
-const message = new MessageBuilder("en")
+const message = new Message("en")
 // Default Variable Message
 message.set("no-response-sending", "Server not response!")
 message.set("no-registry", "Registry not found!")
@@ -75,11 +75,11 @@ message.set("user-not-login", "{{username}} has not login!")
 message.set("user-not-found", "{{username}} not found!")
 
 // Register your logic
-const registry = new RegistryBuilder()
+const registry = new Registry()
 registry.set("user:profile", GetUserProfile, AuthMiddleware);
 
 // Set Your Policy Rules
-const policy = new PolicyBuilder({
+const policy = new Policy({
   passkey: process.env.SEISHIRO_PASSKEY, // For Book Registry Access
   version_now: "1.4.5", // Only support number (0-9.)
   version_min: "1.4.0", // Minimum version

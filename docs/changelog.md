@@ -9,12 +9,18 @@ Update history of Seishiro
 Update for Next.js driver, middleware rules and [Nova.js](https://github.com/untrustnova/nova) support.
 
 <details>
-  <summary>Adding (4)</summary>
+  <summary>Adding (1)</summary>
 
-  1. Update a middleware 
-  2. ? (pending...) New driver for Next.js to automaticly build API with folder structure.
-  3. ? (pending...) Apply new middleware rules.
-  4. ? (pending...) Try new support to [Nova.js](https://github.com/untrustnova/nova).
+  1. Update a middleware & Support multiple middleware.
+
+</details>
+
+<details>
+  <summary>Pending (3)</summary>
+
+  1. New driver for Next.js to automaticly build API with folder structure.
+  2. Apply new middleware rules.
+  3. Try new support to [Nova.js](https://github.com/untrustnova/nova).
 
 </details>
 
@@ -26,9 +32,10 @@ Update for Next.js driver, middleware rules and [Nova.js](https://github.com/unt
 </details>
 
 <details>
-  <summary>Remove</summary>
+  <summary>Remove (2)</summary>
 
   1. `skip_middleware_context` has deprecated, by default middleware won't send context to controller.
+  2. The builder code has now been removed on `RegistryBuilder`, `MessageBuilder`, `PolicyBuilder`, simply restore its functionality like `Registry`, `Message`, `Policy`. Please migrate before the next version.
 
 </details>
 

@@ -30,7 +30,17 @@ export default class MessageBuilder {
       .toLowerCase()
       .replace(/[^a-z]/g, "")
       .slice(0, 2);
-    this.message_logic = new Map();
+    // Set Default Messages
+    this.message_logic.set(
+      this.message_build_lang,
+      new Map([
+        ["no-response-sending", "Server returned no response."],
+        ["client-version-required", "Client version header is required."],
+        ["need-upgrade-client", "Please upgrade your application."],
+        ["no-registry", "Service registry not found."],
+        ["internal-server-error", "Internal server error."],
+      ]),
+    );
   }
 
   /**

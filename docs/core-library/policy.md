@@ -4,7 +4,7 @@ Seishiro Policy Builder is a class that manages application-level policies. It c
 
 ---
 
-The `PolicyBuilder` class manages application-level policies. It controls security aspects such as the encryption passkey, version control, and protocol-specific action restrictions (Gatekeeping).
+The `Policy` class manages application-level policies. It controls security aspects such as the encryption passkey, version control, and protocol-specific action restrictions (Gatekeeping).
 
 ## Constructor
 
@@ -40,7 +40,7 @@ Restricts specific action types from being accessed via specific protocols.
 **Usage:**
 
 ```typescript
-const policy = new PolicyBuilder({ ...config });
+const policy = new Policy({ ...config });
 
 // Block 'admin:delete' from being accessible via HTTP REST API
 policy.noaction("admin:delete", ["api-action"]);

@@ -28,18 +28,18 @@ export const UserProfile = async ({ data, system }) => {
 Connect your logic to Seishiro's control center.
 
 ```js
-import { RegistryBuilder, MessageBuilder, PolicyBuilder, Actions } from "seishiro";
+import { Registry, Message, Policy, Actions } from "seishiro";
 import { UserProfile } from "./controllers/user";
 
 // Map Registry
-const registry = new RegistryBuilder();
+const registry = new Registry();
 registry.set("user:get-profile", UserProfile); // Add Controller To Register
 
 // Setup Orchestrator
 const action = new Actions({
   registry,
-  message: new MessageBuilder("en"),
-  policy: new PolicyBuilder({
+  message: new Message("en"),
+  policy: new Policy({
     passkey: "secret-key",
     version_now: "1.0.0",
     version_min: "1.0.0"

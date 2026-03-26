@@ -1,14 +1,9 @@
-import {
-  RegistryBuilder,
-  MessageBuilder,
-  PolicyBuilder,
-  Actions,
-} from "../dist/esm";
+import { Registry, Message, Policy, Actions } from "../dist/esm";
 
 const timeStart = new Date().getTime();
 
 // Registry
-const registry = new RegistryBuilder();
+const registry = new Registry();
 registry.set("user:login", async () => {});
 registry.set(
   "user:middleware",
@@ -17,17 +12,17 @@ registry.set(
 );
 
 // Message
-const message = new MessageBuilder("en");
+const message = new Message("en");
 
 // Default Variable Message
-message.set("no-response-sending", "Server not response!");
-message.set("no-registry", "Registry not found!");
-message.set("internal-server-error", "Internal server error!");
-message.set("client-version-required", "Client version is required!");
-message.set("need-upgrade-client", "Need upgrade client!");
+// message.set("no-response-sending", "Server not response!");
+// message.set("no-registry", "Registry not found!");
+// message.set("internal-server-error", "Internal server error!");
+// message.set("client-version-required", "Client version is required!");
+// message.set("need-upgrade-client", "Need upgrade client!");
 
 // Policy
-const policy = new PolicyBuilder({
+const policy = new Policy({
   passkey: "testing1234",
   version_now: "1.4.5",
   version_min: "1.4.0",
@@ -54,3 +49,4 @@ console.log({
 message.set("variable", "Hii {{name}}");
 
 console.log(message.errorMessage("variable", { name: "Shiroko!" }));
+console.log(message.errorMessage("no-response-sending", { name: "Shiroko!" }));
